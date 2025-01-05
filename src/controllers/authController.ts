@@ -6,7 +6,7 @@ import User from "../model/userModel"
 import router from '../routes/authRoutes';
 
 
-export const register: RequestHandler<{}, any, RegisterRequestBody> = async (req, res) => {
+export const register: RequestHandler<{}, {}, RegisterRequestBody> = async (req, res) => {
     try {
         const { email, firstName, lastName, password, role } = req.body;
 
@@ -41,7 +41,7 @@ export const register: RequestHandler<{}, any, RegisterRequestBody> = async (req
     }
 };
 
-export const login: RequestHandler<{}, any, LoginRequestBody> = async (req, res) => {
+export const login: RequestHandler<{}, {}, LoginRequestBody> = async (req, res) => {
     try {
         const { email, password } = req.body;
         if (!email || !password) {
@@ -56,7 +56,7 @@ export const login: RequestHandler<{}, any, LoginRequestBody> = async (req, res)
             res.status(404).json({ message: `User with email ${email} not found` });
             return;
         }
-        var isMatch: Boolean = await bcrypt.compare(password, user.password)
+        let isMatch: Boolean = await bcrypt.compare(password, user.password)
         if (!isMatch) {
             res.status(400).json({ message: `Invalid Credentials` });
             return;
