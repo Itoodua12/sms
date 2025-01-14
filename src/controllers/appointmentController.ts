@@ -13,7 +13,7 @@ export const bookAppointment: RequestHandler<{salonId: string}, {}, BookAppointm
         if (!employee) {
             res.status(404).json({ message: "Employee not found" });
             return;
-        }
+        } 
 
         const employeeService = employee.services.find(
             s => s.serviceId.toString() === serviceId
@@ -44,9 +44,10 @@ export const bookAppointment: RequestHandler<{salonId: string}, {}, BookAppointm
             userId,
             employeeId,
             serviceId,
+            price: employeeService.price,
             startTime: requestedStart,
             endTime: requestedEnd,
-            status: 'pending'
+            status: 'booked'
         });
 
         await appointment.save();
@@ -57,7 +58,6 @@ export const bookAppointment: RequestHandler<{salonId: string}, {}, BookAppointm
             startTime: requestedStart,
             endTime: requestedEnd
         });
-
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Error creating appointment" });

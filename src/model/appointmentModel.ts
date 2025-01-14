@@ -5,9 +5,10 @@ export interface IAppointment extends Document {
     userId: mongoose.Types.ObjectId;
     employeeId: mongoose.Types.ObjectId;
     serviceId: mongoose.Types.ObjectId;
+    price: number;
     startTime: Date;
     endTime: Date;
-    status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+    status: 'booked' | 'cancelled';
 }
 
 const appointmentSchema = new Schema({
@@ -31,6 +32,10 @@ const appointmentSchema = new Schema({
         ref: 'Service',
         required: true
     },
+    price: {
+        type: Number,
+        require: true
+    },
     startTime: {
         type: Date,
         required: true
@@ -41,8 +46,8 @@ const appointmentSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'confirmed', 'cancelled', 'completed'],
-        default: 'pending'
+        enum: ['booked','cancelled'],
+        default: 'booked'
     }
 }, {
     timestamps: true

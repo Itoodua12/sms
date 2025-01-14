@@ -1,30 +1,19 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-interface ILocation {
-    type: string;
-    coordinates: number[];
-}
-
-interface IOpeningHours {
-    monday: string;
-    tuesday: string;
-    wednesday: string;
-    thursday: string;
-    friday: string;
-    saturday: string;
-    sunday: string;
-}
-
 export interface ISalon extends Document {
     name: string;
     address: string;
-    location: ILocation;
+    location: {
+        type: string;
+        coordinates: number[];
+    };
+    userId: mongoose.Types.ObjectId;
     phone: string;
     description?: string;
-    coverImage: string;
-    openingHours: IOpeningHours;
-    createdAt: Date;
-    updatedAt: Date;
+    coverImage?: string;
+    openingHours: { [key: string]: string };
+    employees: mongoose.Types.ObjectId[];
+    services: mongoose.Types.ObjectId[];
 }
 
 const salonSchema = new Schema({
@@ -40,6 +29,7 @@ const salonSchema = new Schema({
         type: {
             type: String,
             enum: ['Point'],
+            default: 'Point',
             required: true
         },
         coordinates: {
@@ -51,24 +41,25 @@ const salonSchema = new Schema({
         type: String,
         required: true
     },
-    description: {
-        type: String
-    },
-    coverImage: {
-        type: String,
-        required: true
-    },
+    description: String,
+    coverImage: String,
     openingHours: {
-        monday: { type: String, required: true },    // Format: "09:00-18:00"
-        tuesday: { type: String, required: true },
-        wednesday: { type: String, required: true },
-        thursday: { type: String, required: true },
-        friday: { type: String, required: true },
-        saturday: { type: String, required: true },
-        sunday: { type: String, required: true }
+        type: Map,
+        of: String
+    },
+    employees: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Employee'
+    }],
+    services: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Service'
+    }],
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     }
-}, {
-    timestamps: true
 });
 
 salonSchema.index({ location: '2dsphere' });

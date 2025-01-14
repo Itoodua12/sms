@@ -1,36 +1,17 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-interface IEmployeeService {
-    serviceId: mongoose.Types.ObjectId;
-    duration: number;
-    price: number;
-}
-
 export interface IEmployee extends Document {
     salonId: mongoose.Types.ObjectId;
     name: string;
     position: string;
-    services: IEmployeeService[];
-    schedule?: {
-        [key: string]: string;  // day: working hours
-    };
+    phone: string;
+    schedule?: { [key: string]: string };
+    services: {
+        serviceId: mongoose.Types.ObjectId;
+        duration: number;
+        price: number;
+    }[];
 }
-
-const employeeServiceSchema = new Schema({
-    serviceId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Service',
-        required: true
-    },
-    duration: {
-        type: Number,
-        required: true
-    },
-    price: {
-        type: Number,
-        required: true
-    }
-});
 
 const employeeSchema = new Schema({
     salonId: {
@@ -46,13 +27,32 @@ const employeeSchema = new Schema({
         type: String,
         required: true
     },
-    services: [employeeServiceSchema],
     schedule: {
         type: Map,
         of: String
+    },
+    services: [{
+        serviceId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Service',
+            required: true
+        },
+        duration: {
+            type: Number,
+            required: true
+        },
+        price: {
+            type: Number,
+            required: true
+        }
+    }],
+    phone: {
+        type: String,
+        required: true,
+        unique: true
     }
-}, {
-    timestamps: true
-}); 
+});
+
+employeeSchema.index({ salonId: 1 });
 
 export default mongoose.model<IEmployee>('Employee', employeeSchema); 

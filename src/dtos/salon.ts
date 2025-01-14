@@ -25,6 +25,7 @@ export interface CreateSalonDto {
     employees?: {
         name: string;
         position: string;
+        phone: string;
         schedule?: { [key: string]: string };
         services: {
             serviceName: string;
@@ -39,7 +40,7 @@ export interface SalonFilterDto {
     location?: {
         longitude: number;
         latitude: number;
-        maxDistance?: number; // in kilometers
+        maxDistance?: number;
     };
     serviceId?: string;
 }
