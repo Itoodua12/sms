@@ -4,6 +4,8 @@ import Service from '../model/serviceModel';
 import Employee from '../model/employeeModel';
 import { CreateSalonDto, SalonFilterDto } from '../dtos/salon';
 import mongoose from 'mongoose';
+import { IService } from '../model/serviceModel';
+import { IEmployee } from '../model/employeeModel';
 
 export const createSalon: RequestHandler<{},{}, CreateSalonDto> = async (req, res) => {
     try {
@@ -151,5 +153,60 @@ export const filterSalons: RequestHandler<{}, {}, {}, SalonFilterDto> = async (r
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Error filtering salons" });
+    }
+};
+
+export const getSalonDetails: RequestHandler<{salonId: string}> = async (req, res) => {
+    try {
+        const { salonId } = req.params;
+
+        const salon = await Salon.findById(salonId)
+            .populate<{ services: IService[] }>('services')
+            .populate<{ employees: IEmployee[] }>({
+                path: 'employees',
+                populate: {
+                    path: 'services.serviceId',
+                    select: 'name category'
+                }
+            });
+
+        if (!salon) {
+            res.status(404).json({ message: "Salon not found" });
+            return;
+        }
+
+        const response = {
+            id: salon._id,
+            name: salon.name,
+            address: salon.address,
+            phone: salon.phone,
+            description: salon.description,
+            location: salon.location,
+            openingHours: salon.openingHours,
+            services: salon.services.map(service => ({
+                id: service._id,
+                name: service.name,
+                category: service.category,
+                description: service.description
+            })),
+            employees: salon.employees.map(emp => ({
+                id: emp._id,
+                name: emp.name,
+                position: emp.position,
+                phone: emp.phone,
+                schedule: emp.schedule,
+                services: emp.services.map(service => ({
+                    id: service.serviceId._id,
+                    duration: service.duration,
+                    price: service.price
+                }))
+            }))
+        };
+
+        res.json(response);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error fetching salon details" });
     }
 };
