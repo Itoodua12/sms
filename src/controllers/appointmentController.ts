@@ -25,6 +25,7 @@ export const bookAppointment: RequestHandler<{salonId: string}, {}, BookAppointm
         }
         
         const requestedStart = new Date(startTime);
+        console.log(requestedStart);
         const requestedEnd = new Date(requestedStart.getTime() + employeeService.duration * 60000);
 
         const workingHoursCheck = await isEmployeeWorkingOnDate(employee, requestedStart);
@@ -130,4 +131,50 @@ const isReservedAppointment = async (employee: IEmployee, startDate: Date, endDa
     return {
         isAvailable: true
     };
+};
+
+export const cancelAppointment: RequestHandler<{ appointmentId: string }> = async (req, res) => {
+    try {
+        const { appointmentId } = req.params;
+        const userId = req.user.id;
+
+        const appointment = await Appointment.findById(appointmentId);
+        
+        if (!appointment) {
+            res.status(404).json({ message: "Appointment not found" });
+            return;
+        }
+
+        if (appointment.userId.toString() !== userId) {
+            res.status(403).json({ message: "Not authorized to cancel this appointment" });
+            return;
+        }
+
+        if (appointment.status === 'cancelled') {
+            res.status(400).json({ message: "Appointment is already cancelled" });
+            return;
+        }
+
+        const now = new Date();
+        const hoursDifference = (appointment.startTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+        
+        if (hoursDifference < 4) {
+            res.status(400).json({ 
+                message: "Cannot cancel appointment less than 4 hours before start time" 
+            });
+            return;
+        }
+
+        appointment.status = 'cancelled';
+        await appointment.save();
+
+        res.json({ 
+            message: "Appointment cancelled successfully",
+            appointmentId: appointment._id
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error cancelling appointment" });
+    }
 };
